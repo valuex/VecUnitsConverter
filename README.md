@@ -8,6 +8,7 @@ A simple and customizable Unit Converter
    - input `Value + UnitName` (case unsensitive), like `1km` or `1 km` (space between `Value` and `UnitName` is optional),the  `Length` related units will be displayed, and the textbox with label name as `km` will get the focus; and the converting will be carried out automatically.
 3. Double-click the textbox to copy the value
 4. Click the Unit Label, the converted value and Unit label will be copied at the same time
+5. Can accept arguments. All arguments will be merged into one single string seperated by space.
 #  About `UnitsConfig.json`
 *  one and only one `basic unit` shall be defined under the `UnitTypeName`
 
