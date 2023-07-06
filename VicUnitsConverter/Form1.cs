@@ -9,11 +9,14 @@ namespace VecUnitsConverter
 {
     public partial class Form1 : Form
     {
-        public Form1()
+        List<UnitType> AllUnitsJson;
+        string UserArgs;
+        public Form1(string strFullArgs)
         {
+            UserArgs=strFullArgs;
             InitializeComponent();
         }
-        List<UnitType> AllUnitsJson ;
+
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             string strSelText = listBox1.GetItemText(listBox1.SelectedItem);
@@ -30,9 +33,17 @@ namespace VecUnitsConverter
                 string UnitTName=Unit.UnitTypeName;
                 listBox1.Items.Add(UnitTName);
             }
-            string FirstUnitTypeName = AllUnitsJson[0].UnitTypeName;
-            LoadUnitsIntoForm(FirstUnitTypeName);
-            grpUnits.Text = FirstUnitTypeName;
+            if (UserArgs != "")
+            {
+                SearchBox.Text = UserArgs;
+                bool UnitPos = IsContainsUnit(UserArgs);
+            }
+            else
+            {
+                string FirstUnitTypeName = AllUnitsJson[0].UnitTypeName;
+                LoadUnitsIntoForm(FirstUnitTypeName);
+                grpUnits.Text = FirstUnitTypeName;
+            }
 
 
         }
@@ -186,7 +197,7 @@ namespace VecUnitsConverter
 
         private bool IsContainsUnit(string InStr)
         {
-            InStr=InStr.Trim();
+            InStr=InStr.Trim().ToLower();
             foreach (var vUnitType in AllUnitsJson)
             {
                 string UnitTypeIdxName = vUnitType.UnitTypeName;
@@ -194,24 +205,32 @@ namespace VecUnitsConverter
                 foreach (var sUnit in vUnitType.Units)
                 {
                     iU = iU + 1;
-                    string UnitStName = sUnit.UnitShortName;
+                    string UnitStName = sUnit.UnitShortName.ToLower();
                     int UnitStNameLen = UnitStName.Length;
-                    //if (UnitStNameLen < InStr.Length) continue;
                     int index = InStr.IndexOf(UnitStName, StringComparison.CurrentCultureIgnoreCase);
-                    if (index == -1)    continue;
-                    
+                    // distinguish short unit from long unit, like t o distinguish M from KM,
+                    // by checking whether the last char is letter
+                    // if last char is letter, it means [KM]
+                    string InstrValue=InStr.Substring(0, index);
+                    string lastChar = InstrValue.Substring(InstrValue.Length - 1).ToLower();
+                    bool IsLastCharLetter = IsMatched("[a-z]$", lastChar);
+                    if (index == -1 || IsLastCharLetter)    continue;
                     else if (index >= 0)
                     {
+                        string MatchedUnitStName = UnitStName.ToLower();
+
                         // find unit and value, jump to textbox with value
                         LoadUnitsIntoForm(UnitTypeIdxName);
-                        if(InStr.Substring(index)== UnitStName)
+                        grpUnits.Text = UnitTypeIdxName;
+
+                        if (InStr.Substring(index)== UnitStName)
                         {
                             for (int i = 1;i<=20;i++)
                             {
                                 GroupBox gBox = this.grpUnits.Controls["groupBox" + i.ToString()] as GroupBox;
                                 Label lblCtl = gBox.Controls["label" + i.ToString()] as Label;
                                 string lblCtlText2Lower = lblCtl.Text.ToLower();
-                                if (lblCtlText2Lower.Contains(InStr.Substring(index)))
+                                if (lblCtlText2Lower.Contains(MatchedUnitStName))
                                 {
                                     TextBox txtCtl = gBox.Controls["textBox" + i.ToString()] as TextBox;
                                     if (index > 0) txtCtl.Text = InStr.Substring(0, index).Trim();
